@@ -1,14 +1,16 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, Map, BarChart3, Activity, User, Zap } from 'lucide-react';
+import { Home, Map, BarChart3, Activity, User, Zap, QrCode, ShoppingBag } from 'lucide-react';
 import './Navigation.css';
 
 const NAV = [
-  { to: '/',       icon: Home,     label: 'Overview'  },
-  { to: '/map',    icon: Map,      label: 'Live Map'  },
-  { to: '/admin',  icon: BarChart3,label: 'Admin'     },
-  { to: '/stats',  icon: Activity, label: 'My Stats'  },
-  { to: '/profile',icon: User,     label: 'Profile'   },
+  { to: '/',       icon: Home,       label: 'Overview'  },
+  { to: '/map',    icon: Map,        label: 'Live Map'  },
+  { to: '/entry',  icon: QrCode,     label: 'My Ticket' },
+  { to: '/orders', icon: ShoppingBag,label: 'Order Food', badge: '🟢' },
+  { to: '/admin',  icon: BarChart3,  label: 'Admin'     },
+  { to: '/stats',  icon: Activity,   label: 'My Stats'  },
+  { to: '/profile',icon: User,       label: 'Profile'   },
 ];
 
 export default function Navigation() {
