@@ -12,36 +12,36 @@
 
 ## 🧠 Problem Statement
 
-Managing crowds in large venues is reactive, not proactive. Staff can't predict bottlenecks before they occur, leading to safety risks, long queues, and poor visitor experiences.
+Managing crowds in large venues is reactive, not proactive. Staff can't predict bottlenecks before they occur, leading to safety risks, long queues, and poor visitor experiences. Traditional apps offer static maps that become instantly outdated when a crowd shifts.
 
 ## 💡 Solution
 
-**FlowSync AI** combines real-time crowd sensing with a **5-agent Gemini AI system** to predict crowd movement 10–15 minutes ahead, suggest optimal routing to users, and alert administrators to safety risks — all in a stunning interactive dashboard.
+**FlowSync AI** combines real-time crowd sensing with a **5-agent Gemini AI system** to predict crowd movement 10–15 minutes ahead, suggest optimal routing to users, and alert administrators to safety risks. The platform makes split-second decisions and actively routes traffic to keep crowds flowing efficiently.
 
 ---
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌──────────────────────────────────────────────────────────┐
 │                     React Frontend (Vite)                │
-│  Home · Map Heatmap · Admin Dashboard · Stats · Profile  │
-│              + Floating AI Chat (Global)                 │
+│  Home · Map Heatmap · Smart Ticket · Orders              │
+│  User Stats · Admin Dashboard · Floating Context Chat    │
 └────────────────────────┬─────────────────────────────────┘
                          │ REST API
 ┌────────────────────────▼─────────────────────────────────┐
 │              Node.js + Express Backend                   │
-│  GET /crowd · GET /wait-times · POST /predict            │
-│  GET /stats · POST /simulate                             │
+│  /crowd · /wait-times · /predict · /simulate             │
+│  /gates · /orders · /alerts                              │
 └──────────┬─────────────────────────────┬─────────────────┘
            │                             │
 ┌──────────▼──────┐           ┌──────────▼──────────────────┐
 │  Firebase       │           │  Gemini 1.5 Pro (AI)         │
 │  Firestore      │           │  ┌─ Crowd Prediction Agent   │
 │  (Crowd Data,   │           │  ├─ Queue Optimization Agent │
-│   Wait Times,   │           │  ├─ User Guidance Agent      │
-│   Alerts)       │           │  ├─ Admin Alert Agent        │
-└─────────────────┘           │  └─ Emergency Response Agent │
+│   Wait, Orders) │           │  ├─ User Guidance Agent      │
+└─────────────────┘           │  ├─ Admin Alert Agent        │
+                              │  └─ Emergency Response Agent │
                               └──────────────────────────────┘
 ```
 
@@ -51,37 +51,37 @@ Managing crowds in large venues is reactive, not proactive. Staff can't predict 
 
 | Agent | Role |
 |-------|------|
-| **Crowd Prediction Agent** | Forecasts zone density 10–15 min ahead |
-| **Queue Optimization Agent** | Suggests fastest service queues |
-| **User Guidance Agent** | Provides personalized navigation paths |
-| **Admin Alert Agent** | Detects and escalates density emergencies |
-| **Emergency Response Agent** | Monitors exits, evacuation routing |
+| **Crowd Prediction Agent** | Forecasts zone density 10–15 min ahead based on historical flow and current entry rate. |
+| **Queue Optimization Agent** | Calculates wait times and load-balances by suggesting fastest service queues. |
+| **User Guidance Agent** | Translates complex routing calculations into clear, contextual natural language advice. |
+| **Admin Alert Agent** | Automatically detects and escalates congestion emergencies to admins. |
+| **Emergency Response Agent** | Computes immediate evacuation routing in crisis scenarios based on clear paths. |
 
 ---
 
 ## ✨ Features
 
-### Frontend
-- 🗺️ **Interactive Stadium Heatmap** — hover zones for live density, wait times, and AI routing suggestions
-- 🃏 **Zone Cards** — glassmorphism cards with occupancy bars, trend indicators, and quick actions
-- 💬 **Floating AI Assistant** — persistent on all pages, contextual suggestions, typing indicators
-- 📊 **Admin Dashboard** — AreaCharts, BarCharts (Recharts), event simulation (Goal/Halftime/Match End)
-- 📈 **User Stats Page** — steps saved, time saved, queues avoided, AI badges
-- 👤 **User Profile** — routing preferences, accessibility mode, notification settings
+### Frontend Experiences
+- 🎯 **Decision-First Overview** — A hero action interface guiding the user on "What to do right now" (e.g., "Go to Gate B • 2m wait").
+- 📱 **Smart Entry Ticket** — A generative dynamic QR ticket featuring integrated AI intelligence. Prominently recommends least-crowded gates directly on the entry pass.
+- 🗺️ **Interactive Stadium Heatmap (Tap-First)** — Fast, mobile-optimized heatmap with pulsing rings on critical zones and auto-generated "directional routing arrows" that pop up on tap without needing chatbot interaction.
+- 🍔 **Food Ordering System** — Full menu browsing, interactive cart, and an order state progress tracker (Placed → Confirmed → Preparing → Ready) to prevent users standing in lines.
+- 💬 **Context-Aware Floating Assistant** — A venue-aware chatbot that pre-generates dynamic query chips based on *live* zone states (e.g., "Avoid Gate A — Gate C is 3min faster"), simulating typewriter-style AI thinking states.
+- 📊 **Admin Dashboard** — Live Recharts (Area/Bar charts), full event-simulation suites (Goal/Halftime/Match End), and an integrated **Live Alerts Broadcast** system.
+- 📈 **Personalized User Stats** — IntersectionObserver animated counters, visual activity timelines (drawn path-on-map simulations), and percentile comparison charts ("You vs Avg Attendee").
 
-### Backend
-- `GET /api/crowd` — real-time zone density data
-- `GET /api/wait-times` — live service queue data
-- `GET /api/stats` — venue-wide KPI summary
-- `POST /api/predict` — trigger any AI agent
-- `POST /api/simulate` — event simulation (goal, halftime, emergency)
+### Backend Core
+- Fully built REST layer for processing gates, dynamic ticket routing, and order mock progression:
+  - `GET /api/gates` — live gate wait times + AI recommendations
+  - `POST /api/orders` & `GET /api/orders/:id` — backend simulated state progression 
+  - `POST /api/simulate` — dynamic crowd event simulation 
+  - `POST /api/alerts` — system-wide push broadcasts
 
-### Design
-- 🎨 Deep Blue `#1E3A8A` + Gold `#FBBF24` color system
-- 🔮 Pure glassmorphism cards with `backdrop-filter`
-- ✨ Staggered fade-up entrance animations
-- ♿ Full ARIA labels + keyboard navigation
-- 📱 Fully responsive — mobile bottom-nav, desktop sidebar
+### UI/UX Design System
+- 🎨 Deep Blue `#1E3A8A` + Gold `#FBBF24` + Emerald `#10B981` color palette
+- 🔮 Absolute premium glassmorphism layouts (`backdrop-filter`) and sophisticated micro-animations (e.g., pulsing ring alerts, staggered fades)
+- ♿ Built with ARIA labels and pure vanilla CSS `index.css` global styles — No heavy generic CSS frameworks.
+- 📱 Flawless mobile-responsive design utilizing a horizontal-scrolling bottom nav.
 
 ---
 
@@ -90,41 +90,12 @@ Managing crowds in large venues is reactive, not proactive. Staff can't predict 
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 18, Vite 5, React Router v6 |
-| Charts | Recharts |
+| Analytics/Visuals | Recharts, Lucide React (Icons) |
 | Backend | Node.js, Express 4 |
 | AI | Google Gemini 1.5 Pro (`@google/generative-ai`) |
-| Database | Firebase Firestore (simulated) |
+| Database | Firebase Firestore (simulated in-memory for dev) |
 | Hosting | Firebase Hosting (frontend) |
 | Deployment | Docker + Google Cloud Run (backend) |
-| Fonts | Poppins (Google Fonts) |
-
----
-
-## 📂 Project Structure
-
-```
-FlowSyncAI-1/
-├── frontend/
-│   ├── src/
-│   │   ├── components/     # Navigation, Heatmap, FloatingChat
-│   │   ├── pages/          # Home, Map, AdminDashboard, UserStats, Profile
-│   │   ├── App.jsx         # Routing setup
-│   │   └── index.css       # Global design system
-│   ├── index.html
-│   └── vite.config.js
-├── backend/
-│   ├── api/routes.js       # REST endpoints
-│   ├── agents/index.js     # Multi-agent Gemini orchestration
-│   ├── server.js           # Express entry point
-│   └── Dockerfile          # Cloud Run ready
-├── firebase/
-│   └── firestore-setup.js  # Mock Firestore data + getVenueSnapshot()
-├── prompts/
-│   └── agent-prompts.js    # Master system prompts for all 5 agents
-├── firebase.json            # Firebase Hosting config
-├── .gitignore
-└── README.md
-```
 
 ---
 
@@ -134,7 +105,7 @@ FlowSyncAI-1/
 - Node.js 18+ (LTS)
 - A Gemini API key from [Google AI Studio](https://aistudio.google.com/)
 
-### Backend
+### Backend Setup
 ```bash
 cd backend
 npm install
@@ -143,18 +114,11 @@ echo "GEMINI_API_KEY=your_key_here" > .env
 npm run dev        # starts on http://localhost:3000
 ```
 
-### Frontend
+### Frontend Setup
 ```bash
 cd frontend
 npm install
 npm run dev        # starts on http://localhost:5173
-```
-
-### Docker (Backend)
-```bash
-cd backend
-docker build -t flowsync-backend .
-docker run -p 3000:3000 -e GEMINI_API_KEY=your_key flowsync-backend
 ```
 
 ---
@@ -168,23 +132,12 @@ npm run build
 firebase deploy --only hosting
 ```
 
-### Google Cloud Run (Backend)
+### Docker (Backend)
 ```bash
-gcloud builds submit --tag gcr.io/YOUR_PROJECT/flowsync-backend
-gcloud run deploy flowsync-backend \
-  --image gcr.io/YOUR_PROJECT/flowsync-backend \
-  --platform managed \
-  --set-env-vars GEMINI_API_KEY=your_key
+cd backend
+docker build -t flowsync-backend .
+docker run -p 3000:3000 -e GEMINI_API_KEY=your_key flowsync-backend
 ```
-
----
-
-## 🔐 Environment Variables
-
-| Variable | Description |
-|----------|-------------|
-| `GEMINI_API_KEY` | Google Gemini Pro API key |
-| `PORT` | Backend port (default: 3000) |
 
 ---
 
