@@ -215,6 +215,19 @@ p  { color: var(--text-muted); }
   0%,100% { transform: scale(1); opacity:0.8; }
   50%     { transform: scale(1.08); opacity:1; }
 }
+@keyframes heatPulseRing {
+  0%   { transform: translate(-50%,-50%) scale(0.9); opacity: 0.7; }
+  60%  { transform: translate(-50%,-50%) scale(1.18); opacity: 0.15; }
+  100% { transform: translate(-50%,-50%) scale(0.9); opacity: 0.7; }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(100%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
 
 .anim-fade-up   { animation: fadeUp   0.55s var(--ease) backwards; }
 .anim-fade-in   { animation: fadeIn   0.4s  var(--ease) backwards; }
