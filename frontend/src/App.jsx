@@ -4,6 +4,8 @@ import Navigation from './components/Navigation';
 import FloatingChat from './components/FloatingChat';
 import Home from './pages/Home';
 import MapView from './pages/Map';
+import Entry from './pages/Entry';
+import Orders from './pages/Orders';
 import AdminDashboard from './pages/AdminDashboard';
 import UserStats from './pages/UserStats';
 import Profile from './pages/Profile';
@@ -18,6 +20,8 @@ function App() {
           <Routes>
             <Route path="/"        element={<Home />} />
             <Route path="/map"     element={<MapView />} />
+            <Route path="/entry"   element={<Entry />} />
+            <Route path="/orders"  element={<Orders />} />
             <Route path="/admin"   element={<AdminDashboard />} />
             <Route path="/stats"   element={<UserStats />} />
             <Route path="/profile" element={<Profile />} />
