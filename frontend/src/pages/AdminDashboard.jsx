@@ -62,6 +62,8 @@ export default function AdminDashboard() {
   const [simulating, setSim]    = useState(null);
   const [aiResp, setAiResp]     = useState('');
   const [agentRunning, setAR]   = useState(false);
+  const [broadcastText, setBt]  = useState('');
+  const [broadcasting, setBcg]  = useState(false);
 
   const simulate = (event) => {
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -97,6 +99,24 @@ export default function AdminDashboard() {
       setAR(false);
       setSim(null);
     }, 1800);
+  };
+
+  const handleBroadcast = (e) => {
+    e.preventDefault();
+    if (!broadcastText.trim()) return;
+    setBcg(true);
+    setTimeout(() => {
+      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      setAlerts(p => [{
+        id: Date.now(),
+        sev: 'CRITICAL',
+        text: `📢 SYSTEM BROADCAST: ${broadcastText}`,
+        time: now
+      }, ...p.slice(0, 3)]);
+      setStats(s => ({ ...s, alerts: s.alerts + 1 }));
+      setBt('');
+      setBcg(false);
+    }, 600);
   };
 
   return (
@@ -217,6 +237,28 @@ export default function AdminDashboard() {
               </div>
             ))}
           </div>
+
+          {/* Broadcast input form */}
+          <form style={{ marginTop:'1rem', borderTop:'1px solid var(--border)', paddingTop:'1rem', display:'flex', flexDirection:'column', gap:'0.6rem' }} onSubmit={handleBroadcast}>
+            <label style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--text-muted)' }}>Broadcast Platform-Wide Alert</label>
+            <div style={{ display:'flex', gap:'0.5rem' }}>
+              <input 
+                type="text" 
+                placeholder="Type emergency message..." 
+                value={broadcastText}
+                onChange={e => setBt(e.target.value)}
+                disabled={broadcasting}
+                style={{ flex:1, background:'rgba(255,255,255,0.05)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'0.6rem 0.8rem', color:'var(--text)', fontSize:'0.85rem' }}
+              />
+              <button 
+                type="submit" 
+                disabled={!broadcastText.trim() || broadcasting}
+                style={{ background:'var(--danger)', color:'#fff', border:'none', borderRadius:'var(--radius-sm)', padding:'0 1rem', fontWeight:600, fontSize:'0.85rem', cursor: broadcastText.trim() && !broadcasting ? 'pointer' : 'not-allowed', opacity: broadcastText.trim() && !broadcasting ? 1 : 0.5 }}
+              >
+                Send
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </main>
