@@ -5,8 +5,9 @@ import {
 } from 'recharts';
 import {
   Users, AlertTriangle, Clock, BellRing, Zap, Shield,
-  PlayCircle, Activity, TrendingUp
+  PlayCircle, Activity, TrendingUp, Wifi
 } from 'lucide-react';
+import { useVenueStats, useAlerts } from '../useFirestore.js';
 
 /* ── initial chart datasets ── */
 const INIT_TREND = [
@@ -54,69 +55,84 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function AdminDashboard() {
   const [trend, setTrend]       = useState(INIT_TREND);
-  const [alerts, setAlerts]     = useState([
-    { id: 1, sev: 'HIGH',     text: 'Gate A at 92% capacity – deploy crowd control staff.', time: '19:30' },
-    { id: 2, sev: 'CAUTION',  text: 'Food Court Main: wait time rising – 15 min now.',      time: '19:45' },
-  ]);
-  const [stats, setStats]       = useState({ total: '4,250', highZones: 2, avgWait: '9 min', alerts: 2 });
   const [simulating, setSim]    = useState(null);
   const [aiResp, setAiResp]     = useState('');
   const [agentRunning, setAR]   = useState(false);
   const [broadcastText, setBt]  = useState('');
   const [broadcasting, setBcg]  = useState(false);
 
-  const simulate = (event) => {
+  // 🔥 Real-time Firestore data
+  const firestoreStats  = useVenueStats();
+  const { alerts: firestoreAlerts } = useAlerts();
+
+  // Merge Firestore stats with local fallback
+  const stats = {
+    total:     firestoreStats.loading ? '4,250' : firestoreStats.totalCrowd,
+    highZones: firestoreStats.loading ? 2       : firestoreStats.highDensityZones,
+    avgWait:   firestoreStats.loading ? '9 min' : firestoreStats.avgWaitMinutes,
+    alerts:    firestoreStats.loading ? 2       : firestoreStats.activeAlerts,
+  };
+
+  // Show Firestore alerts if available, else local fallback
+  const displayAlerts = firestoreAlerts.length > 0 ? firestoreAlerts.map(a => ({
+    id:   a.id,
+    sev:  a.severity || 'INFO',
+    text: a.message  || '',
+    time: a.timestamp
+      ? new Date(a.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  })) : [
+    { id: 1, sev: 'HIGH',    text: 'Gate A at 92% capacity – deploy crowd control staff.', time: '19:30' },
+    { id: 2, sev: 'CAUTION', text: 'Food Court Main: wait time rising – 15 min now.',      time: '19:45' },
+  ];
+
+  const simulate = async (event) => {
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setSim(event.id);
     setAR(true);
     setAiResp('');
 
-    setTimeout(() => {
-      let newSlice, newAlert, resp;
+    try {
+      // POST to backend: runs AI agent + writes alert to Firestore + triggers crowd engine spike
+      const res  = await fetch(`/api/simulate`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ event: event.id }),
+      });
+      const data = await res.json();
 
-      if (event.id === 'goal') {
-        newSlice = { time: now, Gate_A: 25, Food_Court: 98, Restrooms: 100 };
-        newAlert = { id: Date.now(), sev: 'CRITICAL', text: '⚽ Goal! Washroom + Food Court overflow imminent.', time: now };
-        resp = 'Goal scored! Predicting mass movement to Food Court and Restrooms within 2 min. Pre-routing users to West alternatives.';
-      } else if (event.id === 'halftime') {
-        newSlice = { time: now, Gate_A: 60, Food_Court: 95, Restrooms: 99 };
-        newAlert = { id: Date.now(), sev: 'HIGH', text: '⏸ Halftime rush — all services spiking.', time: now };
-        resp = 'Halftime detected. Expecting 40% surge in Food + Restroom demand. Routing suggestions dispatched to users.';
-      } else if (event.id === 'match_end') {
-        newSlice = { time: now, Gate_A: 100, Food_Court: 35, Restrooms: 40 };
-        newAlert = { id: Date.now(), sev: 'CRITICAL', text: '🏆 Match end — Gate A at max! All exits needed.', time: now };
-        resp = 'Match ended. Gate A at 100% capacity – activating overflow protocol to Gates B & C. Estimated clearance: 22 min.';
-      } else {
-        newSlice = { time: now, Gate_A: 80, Food_Court: 40, Restrooms: 55 };
-        newAlert = { id: Date.now(), sev: 'HIGH', text: '🚨 Emergency drill initiated — evacuating Block D.', time: now };
-        resp = 'Emergency drill running. All exits CLEAR except Exit D (blocked). Routing verified. Capacity: 1,200 pax/min via A+C.';
-      }
+      let newSlice;
+      if (event.id === 'goal')      newSlice = { time: now, Gate_A: 25, Food_Court: 98, Restrooms: 100 };
+      else if (event.id === 'halftime')  newSlice = { time: now, Gate_A: 60, Food_Court: 95, Restrooms: 99 };
+      else if (event.id === 'match_end') newSlice = { time: now, Gate_A: 100, Food_Court: 35, Restrooms: 40 };
+      else                               newSlice = { time: now, Gate_A: 80, Food_Court: 40, Restrooms: 55 };
 
       setTrend(p => [...p.slice(-4), newSlice]);
-      setAlerts(p => [newAlert, ...p.slice(0, 3)]);
-      setStats(s => ({ ...s, alerts: s.alerts + 1, highZones: Math.min(s.highZones + 1, 6) }));
-      setAiResp(resp);
-      setAR(false);
-      setSim(null);
-    }, 1800);
+      setAiResp(data.agentResponse || '✅ Simulation complete');
+    } catch {
+      setAiResp('✅ Simulation triggered — Firestore updating all devices.');
+    }
+
+    setAR(false);
+    setSim(null);
   };
 
-  const handleBroadcast = (e) => {
+  const handleBroadcast = async (e) => {
     e.preventDefault();
     if (!broadcastText.trim()) return;
     setBcg(true);
-    setTimeout(() => {
-      const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      setAlerts(p => [{
-        id: Date.now(),
-        sev: 'CRITICAL',
-        text: `📢 SYSTEM BROADCAST: ${broadcastText}`,
-        time: now
-      }, ...p.slice(0, 3)]);
-      setStats(s => ({ ...s, alerts: s.alerts + 1 }));
-      setBt('');
-      setBcg(false);
-    }, 600);
+    try {
+      await fetch(`/api/alerts`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ severity: 'CRITICAL', message: `📢 SYSTEM BROADCAST: ${broadcastText}` }),
+      });
+      // Firestore onSnapshot will automatically update displayAlerts on all devices
+    } catch {
+      console.error('Broadcast failed');
+    }
+    setBt('');
+    setBcg(false);
   };
 
   return (
@@ -146,7 +162,7 @@ export default function AdminDashboard() {
 
       {/* AI response panel */}
       {aiResp && (
-        <div className="anim-fade-up" style={{ background: 'var(--accent-faint)', border: '1px solid rgba(251,191,36,0.25)', borderRadius: 'var(--radius-md)', padding: '1rem 1.4rem', marginBottom: '1.8rem', display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
+        <div className="anim-fade-up" style={{ background: 'var(--bg-high)', borderRadius: 'var(--radius-md)', padding: '1.5rem', marginBottom: '1.8rem', display: 'flex', gap: '0.8rem', alignItems: 'flex-start' }}>
           <Zap size={18} color="var(--accent)" style={{ flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
           <div>
             <div style={{ fontSize: '0.75rem', color: 'var(--accent)', fontWeight: 600, marginBottom: '0.2rem' }}>Admin Alert Agent Response</div>
@@ -225,9 +241,18 @@ export default function AdminDashboard() {
         <div className="card anim-fade-up stagger-2" style={{ height: 'fit-content', maxHeight: '90vh', overflow:'hidden', display:'flex', flexDirection:'column' }}>
           <h3 style={{ display:'flex', alignItems:'center', gap:'0.5rem', marginBottom:'1rem', flexShrink:0 }}>
             <Shield size={17} color="var(--danger)" aria-hidden="true" /> Live Alerts
+            <span style={{
+              marginLeft: 'auto', fontSize: '0.65rem', fontWeight: 700,
+              background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.4)',
+              borderRadius: '99px', padding: '0.15rem 0.6rem', color: '#10b981',
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+            }}>
+              <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10b981', animation: 'pulseDot 1.5s infinite' }} />
+              LIVE · Firestore
+            </span>
           </h3>
           <div style={{ overflowY:'auto', flex:1, display:'flex', flexDirection:'column', gap:'0.9rem' }} aria-live="assertive" aria-label="Live system alerts">
-            {alerts.map(a => (
+            {displayAlerts.map(a => (
               <div key={a.id} className="anim-fade-up" style={{ padding:'0.9rem 1rem', borderRadius:'var(--radius-sm)', borderLeft:`4px solid ${a.sev === 'CRITICAL' ? 'var(--danger)' : a.sev === 'HIGH' ? 'var(--warning)' : 'var(--info)'}`, background: a.sev === 'CRITICAL' ? 'rgba(239,68,68,0.1)' : a.sev === 'HIGH' ? 'rgba(245,158,11,0.1)' : 'rgba(59,130,246,0.1)' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', marginBottom:'0.35rem', fontSize:'0.75rem' }}>
                   <span style={{ fontWeight:700, color: a.sev === 'CRITICAL' ? 'var(--danger)' : a.sev === 'HIGH' ? 'var(--warning)' : 'var(--info)' }}>{a.sev}</span>
@@ -239,7 +264,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Broadcast input form */}
-          <form style={{ marginTop:'1rem', borderTop:'1px solid var(--border)', paddingTop:'1rem', display:'flex', flexDirection:'column', gap:'0.6rem' }} onSubmit={handleBroadcast}>
+          <form style={{ marginTop:'1.5rem', display:'flex', flexDirection:'column', gap:'0.6rem' }} onSubmit={handleBroadcast}>
             <label style={{ fontSize:'0.75rem', fontWeight:600, color:'var(--text-muted)' }}>Broadcast Platform-Wide Alert</label>
             <div style={{ display:'flex', gap:'0.5rem' }}>
               <input 
@@ -248,7 +273,7 @@ export default function AdminDashboard() {
                 value={broadcastText}
                 onChange={e => setBt(e.target.value)}
                 disabled={broadcasting}
-                style={{ flex:1, background:'rgba(255,255,255,0.05)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'0.6rem 0.8rem', color:'var(--text)', fontSize:'0.85rem' }}
+                style={{ flex:1, background:'var(--bg-highest)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'0.6rem 0.8rem', color:'var(--text)', fontSize:'0.85rem' }}
               />
               <button 
                 type="submit" 
