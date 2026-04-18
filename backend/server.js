@@ -70,13 +70,17 @@ app.get('*', (req, res) => {
 });
 
 // ── Start ────────────────────────────────────────────────
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(JSON.stringify({
-    severity: 'INFO',
-    message: `FlowSync AI backend running on port ${PORT}`,
-    timestamp: new Date().toISOString(),
-  }));
-  // Start the simulated crowd event engine
-  // Writes to Firestore every 15 s — all clients update in real time
-  startCrowdEngine();
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(JSON.stringify({
+      severity: 'INFO',
+      message: `FlowSync AI backend running on port ${PORT}`,
+      timestamp: new Date().toISOString(),
+    }));
+    // Start the simulated crowd event engine
+    // Writes to Firestore every 15 s — all clients update in real time
+    startCrowdEngine();
+  });
+}
+
+export default app;

@@ -177,6 +177,13 @@ router.post('/predict', async (req, res) => {
   }
 
   const snap   = await getVenueSnapshot();
+  
+  console.log(JSON.stringify({ 
+    severity: 'INFO', 
+    message: `[Cloud Run] Triggering Gemini inference via Agent ID: ${agentType}`, 
+    labels: { service: 'gemini-1.5-pro' } 
+  }));
+
   const result = await runAgent(agentType, snap, query);
   res.json({ success: true, agent: agentType, timestamp: new Date().toISOString(), result });
 });
@@ -193,6 +200,12 @@ router.post('/simulate', async (req, res) => {
   const result = await runAgent('adminAlertAgent', snap, `Simulate crowd response for event: ${event}`);
 
   // Also write an alert to Firestore so all clients are notified
+  console.log(JSON.stringify({ 
+    severity: 'INFO', 
+    message: `[Firestore] Writing critical simulated event alert: ${event}`, 
+    labels: { service: 'firestore', operation: 'write' } 
+  }));
+
   await writeAlert({
     severity: event === 'emergency' ? 'CRITICAL' : 'HIGH',
     message:  `[${event.toUpperCase()}] ${result.slice(0, 120)}`,

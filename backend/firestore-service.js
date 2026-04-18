@@ -23,9 +23,11 @@ function initAdmin() {
         // Cloud Run: JSON key injected via Secret Manager env var
         const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
         initializeApp({ credential: cert(sa) });
+        console.log(JSON.stringify({ severity: 'INFO', message: '[GCP Secret Manager] Securely loaded Firebase credentials' }));
       } else {
         // Local dev: ADC or GOOGLE_APPLICATION_CREDENTIALS file
         initializeApp();
+        console.log(JSON.stringify({ severity: 'INFO', message: '[GCP ADC] Initializing Firestore via Application Default Credentials' }));
       }
     }
     db = getFirestore();
