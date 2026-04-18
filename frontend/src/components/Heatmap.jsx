@@ -3,6 +3,8 @@ import {
   AlertTriangle, CheckCircle, ArrowRight, ArrowLeft,
   ArrowDown, Navigation, X, Zap, Clock, Users, RefreshCw
 } from 'lucide-react';
+import { useCrowdZones } from '../useFirestore.js';
+
 
 /* ─────────────────────────────────────────────────────────
    ZONE CONFIG — each zone knows its own routing advice
@@ -277,59 +279,64 @@ function ActionPanel({ zone, zones, onClose, onSelectTarget }) {
    MAIN HEATMAP COMPONENT
 ───────────────────────────────────────────────────────── */
 export default function Heatmap() {
+  // Layout config (positions, sizes, routing advice) stays local
   const [zones, setZones]       = useState(INIT_ZONES);
   const [selected, setSelected] = useState(null);
-  const [tick, setTick]         = useState(0);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [refreshing, setRefreshing]   = useState(false);
 
-  /* Live data simulation — refresh every 30 s */
-  const refresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setZones(prev => prev.map(z => {
-        const delta = Math.floor(Math.random() * 8) - 4;
-        const newOcc = Math.min(99, Math.max(5, z.occ + delta));
-        const newWait = Math.max(1, z.wait + Math.floor(delta / 2));
-        const density = newOcc >= 80 ? 'High' : newOcc >= 50 ? 'Medium' : 'Low';
-        const avoid = density === 'High';
-        return { ...z, occ: newOcc, wait: newWait, density, avoid };
-      }));
-      setLastRefresh(new Date());
-      setRefreshing(false);
-      setTick(t => t + 1);
-      // Update selected zone with fresh data
-      if (selected) {
-        setSelected(prev => prev
-          ? zones.find(z => z.id === prev.id) ?? prev
-          : null
-        );
-      }
-    }, 500);
-  }, [selected, zones]);
+  // 🔥 Real-time Firestore crowd data
+  const { zones: firestoreZones, loading: fsLoading } = useCrowdZones();
 
+  // Merge Firestore live data into layout config whenever it updates
   useEffect(() => {
-    const iv = setInterval(refresh, 30000);
-    return () => clearInterval(iv);
-  }, [refresh]);
+    if (!firestoreZones || firestoreZones.length === 0) return;
 
-  const handleSelect = useCallback((zone) => {
-    setSelected(prev => prev?.id === zone.id ? null : zone);
-  }, []);
+    setZones(prev => prev.map(localZone => {
+      // Match by zone name (Firestore doc has a `zone` field)
+      const live = firestoreZones.find(fz =>
+        fz.zone && localZone.name && (
+          fz.zone.toLowerCase().includes(localZone.name.toLowerCase()) ||
+          localZone.name.toLowerCase().includes(fz.zone.toLowerCase().split(' ')[0].toLowerCase())
+        )
+      );
+      if (!live) return localZone;
 
-  const handleSelectTarget = useCallback((target) => {
-    setSelected(target);
-  }, []);
+      const newOcc     = live.occupancy !== undefined ? Math.round((live.occupancy / (live.capacity || 1)) * 100) : localZone.occ;
+      const newDensity = live.density || (newOcc >= 80 ? 'High' : newOcc >= 45 ? 'Medium' : 'Low');
+      const avoid      = newDensity === 'High';
 
-  const handleClose = useCallback(() => setSelected(null), []);
+      return {
+        ...localZone,
+        occ:     newOcc,
+        wait:    live.wait ?? localZone.wait,
+        density: newDensity,
+        avoid,
+      };
+    }));
 
-  /* Sync selected zone when data refreshes */
+    setLastRefresh(new Date());
+    setRefreshing(false);
+  }, [firestoreZones]);
+
+  // Keep selected zone in sync when live data updates
   useEffect(() => {
     if (selected) {
       const fresh = zones.find(z => z.id === selected.id);
       if (fresh) setSelected(fresh);
     }
   }, [zones]);
+
+  const refresh = useCallback(() => {
+    setRefreshing(true);
+    // Firestore onSnapshot already handles updates automatically;
+    // this just gives the user visual feedback
+    setTimeout(() => setRefreshing(false), 800);
+  }, []);
+
+  const handleSelect       = useCallback((zone) => setSelected(prev => prev?.id === zone.id ? null : zone), []);
+  const handleSelectTarget = useCallback((target) => setSelected(target), []);
+  const handleClose        = useCallback(() => setSelected(null), []);
 
   const highCount = zones.filter(z => z.density === 'High').length;
 
