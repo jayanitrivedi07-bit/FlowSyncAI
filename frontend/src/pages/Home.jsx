@@ -4,6 +4,8 @@ import {
   ArrowRight, MapPin, Clock, Users, AlertTriangle,
   Zap, ChevronDown, Navigation, CheckCircle, MessageSquare
 } from 'lucide-react';
+import { useCrowdZones } from '../useFirestore.js';
+
 
 /* ─── Live zone data ─── */
 const ZONES = [
@@ -27,8 +29,8 @@ function ZoneRow({ zone, onNavigate }) {
       style={{
         display: 'flex', alignItems: 'center', gap: '1rem',
         padding: '0.85rem 1rem', borderRadius: 'var(--radius-sm)',
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid var(--border)',
+        background: 'transparent',
+        /* border removed to adhere to the No-Line rule */
         transition: 'background 0.2s',
         cursor: 'pointer',
       }}
@@ -73,23 +75,28 @@ function ZoneRow({ zone, onNavigate }) {
 /* ─── Home page ─── */
 export default function Home() {
   const navigate = useNavigate();
-  const [zones, setZones] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [showZones, setShowZones] = useState(false);
   const [actionDone, setActionDone] = useState(false);
-  const pulseRef = useRef(null);
+
+  // 🔥 Real-time Firestore crowd data (replaces static ZONES + setTimeout)
+  const { zones: fsZones, loading, highCount } = useCrowdZones();
+
+  // Map Firestore docs → local display schema (preserves all UI logic)
+  const zones = fsZones.length > 0 ? fsZones.map((z, i) => ({
+    id:       i + 1,
+    name:     z.zone?.replace('Entrance ', '') || z.zone,
+    fullName: z.zone,
+    type:     z.zone?.includes('Gate') ? 'Entry / Exit' : 'Services',
+    density:  z.density  || 'Low',
+    occupancy: z.occupancy || 0,
+    capacity:  z.capacity  || 1000,
+    wait:      z.wait      || 0,
+    trend:     z.trend === 'rising' ? '↑' : z.trend === 'falling' ? '↓' : '→',
+  })) : ZONES; // fallback to static while Firestore loads
 
   const recommended = zones.find(z => z.density === 'Low' && z.type === 'Entry / Exit') || zones[1];
   const busiest     = zones.reduce((worst, z) => (z.wait > (worst?.wait ?? 0) ? z : worst), null);
   const timeSaved   = recommended && busiest ? busiest.wait - recommended.wait : 10;
-
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setZones(ZONES);
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(t);
-  }, []);
 
   if (loading) {
     return (
@@ -111,9 +118,9 @@ export default function Home() {
         className="anim-fade-up"
         style={{
           position: 'relative', overflow: 'hidden',
-          background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(30,58,138,0.25) 60%, rgba(7,13,27,0.9) 100%)',
-          border: '1px solid rgba(16,185,129,0.35)',
-          borderRadius: 'var(--radius-lg)',
+          background: 'linear-gradient(135deg, rgba(16,185,129,0.12) 0%, rgba(0,224,255,0.25) 60%, rgba(14,14,14,0.9) 100%)',
+          /* border removed */
+          borderRadius: 'var(--radius-xl)',
           padding: 'clamp(1.5rem, 4vw, 2.4rem)',
           marginBottom: '2rem',
           boxShadow: '0 0 40px rgba(16,185,129,0.08)',
@@ -131,7 +138,7 @@ export default function Home() {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
           <span style={{
             display: 'inline-flex', alignItems: 'center', gap: '0.35rem',
-            background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)',
+            background: 'rgba(16,185,129,0.15)',
             borderRadius: '99px', padding: '0.2rem 0.75rem',
             fontSize: '0.72rem', fontWeight: 700, color: 'var(--success)',
             letterSpacing: '0.08em',
@@ -169,8 +176,8 @@ export default function Home() {
           {actionDone ? (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '0.6rem',
-              background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.35)',
-              borderRadius: 'var(--radius-sm)', padding: '0.65rem 1.4rem',
+              background: 'rgba(16,185,129,0.15)',
+              borderRadius: 'var(--radius-md)', padding: '0.65rem 1.4rem',
               color: 'var(--success)', fontWeight: 700, fontSize: '0.95rem',
             }}>
               <CheckCircle size={18} /> On your way — Gate B
@@ -218,7 +225,7 @@ export default function Home() {
           </span>
           <span style={{
             fontSize: '0.68rem', color: 'var(--danger)', fontWeight: 600,
-            background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)',
+            background: 'rgba(239,68,68,0.1)',
             borderRadius: '4px', padding: '0.1rem 0.5rem',
           }}>
             2 high-risk zones
@@ -260,13 +267,13 @@ export default function Home() {
             id={card.id}
             onClick={card.action}
             style={{
-              background: 'var(--bg-card)', border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)', padding: '1.1rem 1.2rem',
+              background: 'var(--bg-high)',
+              borderRadius: 'var(--radius-xl)', padding: '1.5rem 1.2rem',
               display: 'flex', flexDirection: 'column', gap: '0.5rem',
               cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s var(--ease)',
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = card.color; e.currentTarget.style.transform = 'translateY(-2px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.transform = 'none'; }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg-highest)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--bg-high)'; e.currentTarget.style.transform = 'none'; }}
             aria-label={card.label}
           >
             <span style={{ fontSize: '1.4rem' }}>{card.icon}</span>
@@ -287,8 +294,8 @@ export default function Home() {
           style={{
             display: 'flex', alignItems: 'center', gap: '0.6rem',
             width: '100%', padding: '0.85rem 1.1rem',
-            background: 'var(--bg-card)', border: '1px solid var(--border)',
-            borderRadius: showZones ? 'var(--radius-md) var(--radius-md) 0 0' : 'var(--radius-md)',
+            background: 'var(--bg-card)',
+            borderRadius: showZones ? 'var(--radius-xl) var(--radius-xl) 0 0' : 'var(--radius-xl)',
             cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.88rem', fontWeight: 500,
             transition: 'border-radius 0.2s',
           }}
@@ -307,8 +314,7 @@ export default function Home() {
 
         {showZones && (
           <div style={{
-            border: '1px solid var(--border)', borderTop: 'none',
-            borderRadius: '0 0 var(--radius-md) var(--radius-md)',
+            borderRadius: '0 0 var(--radius-xl) var(--radius-xl)',
             padding: '0.75rem',
             display: 'flex', flexDirection: 'column', gap: '0.5rem',
             background: 'var(--bg-card)',
