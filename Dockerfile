@@ -27,8 +27,11 @@ RUN addgroup -S flowsync && adduser -S flowsync -G flowsync
 USER flowsync
 
 # Copy backend dependencies and source
-COPY --from=backend-deps /app/node_modules ./node_modules
+COPY --from=backend-deps --chown=flowsync:flowsync /app/node_modules ./node_modules
 COPY --chown=flowsync:flowsync backend/ ./
+
+# Copy prompts directory which is dynamically imported by AI agents
+COPY --chown=flowsync:flowsync prompts/ /prompts/
 
 # Copy built frontend assets into a static directory called 'public' inside backend
 # Ensure /app/public is used by Express to serve static files
