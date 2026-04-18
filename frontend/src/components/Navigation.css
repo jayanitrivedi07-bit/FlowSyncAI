@@ -3,7 +3,7 @@
   background: rgba(7, 13, 27, 0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid var(--border);
+  /* border-right removed */
   position: fixed;
   left: 0; top: 0; bottom: 0;
   display: flex;
@@ -19,7 +19,7 @@
   align-items: center;
   gap: 0.85rem;
   padding: 1.6rem 1.4rem;
-  border-bottom: 1px solid var(--border);
+  background: var(--bg-lowest); /* define boundary with background */
 }
 .brand-icon {
   width: 40px; height: 40px;
@@ -49,7 +49,7 @@
   padding: 0.6rem 1.4rem;
   font-size: 0.78rem;
   color: var(--success);
-  border-bottom: 1px solid var(--border);
+  /* border-bottom removed */
   background: rgba(16,185,129,0.05);
 }
 .live-dot {
@@ -89,10 +89,10 @@
 .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.05); }
 .nav-item.active {
   color: var(--text);
-  background: var(--primary-faint);
-  border: 1px solid rgba(30,58,138,0.3);
+  background: var(--bg-high);
+  /* border removed */
 }
-.nav-item.active .nav-icon { color: var(--accent); }
+.nav-item.active .nav-icon { color: var(--primary); }
 
 .nav-icon { display: flex; flex-shrink: 0; }
 .nav-label { flex: 1; }
@@ -108,7 +108,7 @@
 
 .sidebar-footer {
   padding: 1rem 1.4rem;
-  border-top: 1px solid var(--border);
+  /* border-top removed */
   font-size: 0.72rem;
   color: var(--text-dim);
   display: flex;
@@ -121,8 +121,8 @@
   .sidebar {
     width: 100%; height: 64px;
     top: auto; bottom: 0;
-    border-right: none;
-    border-top: 1px solid var(--border);
+    /* border-right: none; */
+    /* border-top removed */
     flex-direction: row;
     align-items: center;
     overflow: hidden;
