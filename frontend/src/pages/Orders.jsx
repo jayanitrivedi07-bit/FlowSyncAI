@@ -75,7 +75,7 @@ function ItemCard({ item, stall, qty, onAdd, onRemove }) {
   return (
     <div style={{
       display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start',
-      padding: '1rem 0', borderBottom: '1px solid var(--border)',
+      padding: '1rem 0',
     }}>
       <div style={{ flex: 1, paddingRight: '1rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
@@ -153,7 +153,7 @@ function StallCard({ stall, cart, onAdd, onRemove, expanded, onToggle }) {
       </button>
 
       {expanded && (
-        <div style={{ padding: '0 1.4rem 1rem', borderTop: '1px solid var(--border)' }}>
+        <div style={{ padding: '0 1.4rem 1rem' }}>
           {stall.items.map(item => (
             <ItemCard
               key={item.id}
@@ -242,7 +242,7 @@ function OrderTracker({ order, onClose }) {
               <span>₹{it.price * it.qty}</span>
             </div>
           ))}
-          <div style={{ borderTop: '1px solid var(--border)', marginTop: '0.7rem', paddingTop: '0.7rem', display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: 'var(--text)' }}>
+          <div style={{ marginTop: '0.7rem', paddingTop: '0.7rem', display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: 'var(--text)' }}>
             <span>Total</span>
             <span>₹{order.total}</span>
           </div>
@@ -361,7 +361,7 @@ export default function Orders() {
               <button
                 key={o.id}
                 onClick={() => setActiveOrder(o)}
-                style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', padding: '0.7rem 1rem', whiteSpace: 'nowrap', cursor: 'pointer', color: 'var(--text)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                style={{ background: 'var(--bg-high)', borderRadius: 'var(--radius-sm)', padding: '0.7rem 1rem', whiteSpace: 'nowrap', cursor: 'pointer', color: 'var(--text)', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
               >
                 <Package size={14} color="var(--primary-light)" />
                 #{o.id} · ₹{o.total} · {o.placedAt}
@@ -451,7 +451,7 @@ export default function Orders() {
             aria-label="Your cart"
           >
             {/* Drawer header */}
-            <div style={{ padding: '1.4rem', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ padding: '1.4rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-high)' }}>
               <h2 style={{ fontSize: '1.1rem' }}>
                 <ShoppingCart size={18} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }} />
                 Your Order
@@ -470,7 +470,7 @@ export default function Orders() {
                 </div>
               ) : (
                 cartItems.map(({ item, stall, qty }) => (
-                  <div key={item.id} style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', padding: '0.9rem 0', borderBottom: '1px solid var(--border)' }}>
+                  <div key={item.id} style={{ display: 'flex', gap: '0.8rem', alignItems: 'center', padding: '0.9rem 0' }}>
                     <span style={{ fontSize: '1.4rem' }}>{stall.emoji}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--text)' }}>{item.name}</div>
@@ -493,7 +493,7 @@ export default function Orders() {
 
             {/* Checkout footer */}
             {cartItems.length > 0 && (
-              <div style={{ padding: '1.2rem 1.4rem', borderTop: '1px solid var(--border)' }}>
+              <div style={{ padding: '1.2rem 1.4rem', background: 'var(--bg-high)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.6rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                   <span>Subtotal ({cartCount} items)</span>
                   <span style={{ color: 'var(--text)', fontWeight: 700 }}>₹{cartTotal}</span>
