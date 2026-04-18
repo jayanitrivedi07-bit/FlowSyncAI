@@ -121,7 +121,7 @@ function JourneyPath() {
           position: 'absolute',
           top: `${(100 - pct) / 2}%`, left: `${(100 - pct) / 2}%`,
           width: `${pct}%`, height: `${pct}%`,
-          border: '1px solid rgba(255,255,255,0.04)',
+          border: '1px solid rgba(133,147,151,0.08)', /* Reduced visibility */
           borderRadius: '50%',
         }} />
       ))}
@@ -284,8 +284,8 @@ export default function UserStats() {
             onClick={() => setActiveTab(t.id)}
             style={{
               padding: '0.5rem 1.1rem', borderRadius: '6px', fontWeight: 600, fontSize: '0.84rem',
-              background: activeTab === t.id ? 'var(--primary-light)' : 'transparent',
-              color:      activeTab === t.id ? '#fff' : 'var(--text-muted)',
+              background: activeTab === t.id ? 'var(--bg-high)' : 'transparent',
+              color:      activeTab === t.id ? 'var(--primary)' : 'var(--text-muted)',
               border: 'none', cursor: 'pointer', transition: 'all 0.2s var(--ease)',
             }}
             aria-selected={activeTab === t.id}
@@ -346,11 +346,11 @@ export default function UserStats() {
                 <Target size={16} color="var(--accent)" /> AI Impact Today
               </h3>
               {[
-                { label: 'Time recovered by AI routing', value: '28 min', color: '#10b981' },
-                { label: 'Peak congestion dodged',        value: '3 events', color: '#f59e0b' },
-                { label: 'Optimal gate selection rate',   value: '100%',    color: '#3b82f6' },
+                { label: 'Time recovered by AI routing', value: '28 min', color: 'var(--primary)' },
+                { label: 'Peak congestion dodged',        value: '3 events', color: 'var(--warning)' },
+                { label: 'Optimal gate selection rate',   value: '100%',    color: 'var(--primary-light)' },
               ].map(row => (
-                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.55rem 0', borderBottom: '1px solid var(--border)', fontSize: '0.82rem' }}>
+                <div key={row.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', fontSize: '0.82rem' }}>
                   <span style={{ color: 'var(--text-muted)' }}>{row.label}</span>
                   <strong style={{ color: row.color }}>{row.value}</strong>
                 </div>
@@ -406,7 +406,7 @@ export default function UserStats() {
             <ComparisonBar label="Time saved vs average" you={28} avg={0}  unit=" min" color="#f59e0b" />
           </div>
 
-          <div className="card anim-fade-up stagger-1" style={{ background: 'linear-gradient(145deg, rgba(16,185,129,0.08), rgba(30,58,138,0.15))', border: '1px solid rgba(16,185,129,0.2)' }}>
+          <div className="card anim-fade-up stagger-1" style={{ background: 'var(--bg-highest)' }}>
             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
               <div style={{ fontSize: '3.5rem', fontWeight: 900, background: 'linear-gradient(135deg, #10b981, var(--accent))', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', lineHeight: 1 }}>
                 Top 8%
