@@ -1,208 +1,257 @@
 # ⚡ FlowSync AI
-**🏟️ AI-Powered Real-Time Venue Intelligence Platform**
+### AI-Powered Real-Time Venue Intelligence Platform
 
-Predict. Route. Optimize.  
-*Turning chaotic crowds into seamless experiences using multi-agent AI.*
+> **Hackathon Project** — Built on Google Cloud · Gemini AI · Firebase · Cloud Run
 
-## 🚀 Live Demo
-
-🔗 **View Deployed App**  
-*(Add your Vercel link here)*
-
----
-
-## 🧠 The Problem
-
-Large venues like stadiums, concerts, and festivals suffer from reactive crowd management:
-
-- 🚫 No prediction of congestion
-- ⏳ Long queues & poor flow
-- ⚠️ Safety risks during peak moments
-- 🗺️ Static maps that become instantly outdated
-
-## 💡 The Solution
-
-**FlowSync AI** transforms crowd management from reactive → predictive using a multi-agent AI system. 
-
-It:
-- 🔮 Predicts crowd movement 10–15 minutes ahead
-- 🧭 Dynamically routes users to optimal paths
-- 🚨 Alerts admins before congestion becomes dangerous
-- ⚡ Makes real-time micro-decisions at scale
+[![Cloud Run](https://img.shields.io/badge/Google%20Cloud-Cloud%20Run-4285F4?logo=googlecloud)](https://cloud.run)
+[![Firebase](https://img.shields.io/badge/Firebase-Firestore-FFCA28?logo=firebase)](https://firebase.google.com)
+[![Gemini](https://img.shields.io/badge/Gemini-1.5%20Pro-8E24AA?logo=google)](https://ai.google.dev)
+[![Node.js](https://img.shields.io/badge/Node.js-20%20Alpine-339933?logo=nodedotjs)](https://nodejs.org)
+[![React](https://img.shields.io/badge/React-18%20Vite-61DAFB?logo=react)](https://vitejs.dev)
 
 ---
 
-## 🏗️ System Architecture
+## 🏟️ What is FlowSync AI?
 
-```text
-Frontend (React + Vite)
-   ↓
-Node.js + Express API Layer
-   ↓
-Firebase Firestore (Realtime Data)
-   ↓
-Gemini 1.5 Pro (Multi-Agent AI System)
+FlowSync AI is a **real-time crowd intelligence platform** for stadiums and large-scale events. It uses **AI agents powered by Google Gemini** to predict crowd movement, optimize routing, and keep thousands of attendees safe — updating every device in the venue simultaneously via **Firestore real-time listeners**.
+
+Open the admin dashboard on a laptop, the map on a phone — both update **instantly** when crowd density changes. No refresh. No polling. Zero stale data.
+
+---
+
+## 🏗️ Google Cloud Architecture
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│             USER DEVICES (Mobile · Tablet · Admin PC)            │
+│          React PWA  ←──── Firestore onSnapshot() ────►          │
+└────────────────────────────┬─────────────────────────────────────┘
+                             │ HTTPS REST
+              ┌──────────────▼──────────────────┐
+              │     Cloud Run — Backend API      │  ← Auto-scales 1→100
+              │   Node.js 20 · PORT 8080         │
+              │   Stateless · Alpine Docker      │
+              │   + Crowd Engine (ticks 15s)     │
+              └──────┬───────────────┬───────────┘
+                     │               │
+       ┌─────────────▼──────┐  ┌────▼────────────────┐
+       │   Gemini 1.5 Pro   │  │      Firestore       │
+       │   (AI Agents +     │  │  venues/stadium-1/   │
+       │    LRU Cache 60s)  │  │  ├── zones/          │
+       └────────────────────┘  │  orders/             │
+                               │  alerts/             │
+                               └──────────────────────┘
+                                        │
+                               Firestore onSnapshot
+                                        │
+              ┌─────────────────────────▼───────────────────────┐
+              │          ALL CONNECTED DEVICES UPDATE            │
+              │    Heatmap · Home · Admin · Orders — INSTANT    │
+              └─────────────────────────────────────────────────┘
 ```
 
-## 🔁 Data Flow
+### Google Cloud Services Used
 
-1. **Crowd data ingested** (gates, orders, zones)
-2. **AI agents process & predict** flow
-3. **APIs serve optimized decisions**
-4. **UI updates instantly** with actionable insights
-
----
-
-## 🤖 Multi-Agent AI System
-
-| Agent | Responsibility |
-|-------|----------------|
-| 🔮 **Crowd Prediction Agent** | Forecasts density 10–15 mins ahead |
-| ⏱️ **Queue Optimization Agent** | Calculates wait times & balances load |
-| 🧭 **User Guidance Agent** | Converts logic → simple user actions |
-| 🚨 **Admin Alert Agent** | Detects congestion risks automatically |
-| 🆘 **Emergency Response Agent** | Generates evacuation routes |
+| Service | Role |
+|---|---|
+| **Cloud Run** | Stateless containerised backend, auto-scales to 100 instances |
+| **Firestore** | Single source of truth — real-time sync across all devices |
+| **Gemini 1.5 Pro** | 5 AI agents with 60s LRU response cache |
+| **Cloud Logging** | Structured JSON logs from backend (severity, httpRequest) |
+| **Artifact Registry** | Docker image storage for Cloud Run deployments |
+| **Secret Manager** | `GEMINI_API_KEY` and `FIREBASE_SERVICE_ACCOUNT_JSON` (prod) |
 
 ---
 
-## ✨ Key Features
+## 🤖 AI Multi-Agent System
 
-### 🎯 Decision-First UX
-*“What should I do right now?”*
-Smart suggestions like: **“Go to Gate B • 2 min wait”**
+| Agent | Trigger | Output |
+|---|---|---|
+| `crowdPredictionAgent` | `/api/predict` | Next 10-min zone overflow forecast |
+| `queueOptimizationAgent` | `/api/predict` | Shortest queue routing |
+| `userGuidanceAgent` | FloatingChat | Personalized step-by-step routing |
+| `adminAlertAgent` | `/api/simulate` | Post-event crowd response plan |
+| `emergencyResponseAgent` | Emergency drill | Exit status + evacuation capacity |
 
-### 📱 Smart AI Ticket
-- Dynamic QR ticket
-- Built-in routing intelligence
-- Recommends least crowded entry in real-time
-
-### 🗺️ Interactive Heatmap
-- Live crowd density visualization
-- Tap zones → instant routing arrows
-- Pulsing alerts on critical congestion
-
-### 🍔 Smart Food Ordering
-- Skip physical queues entirely
-- Real-time order tracking:  
-  *Placed → Confirmed → Preparing → Ready*
-
-### 💬 Context-Aware AI Assistant
-- Auto-generated smart prompts
-- Live-aware suggestions  
-  *“Avoid Gate A → Gate C is faster”*
-
-### 📊 Admin Dashboard
-- Real-time analytics (Recharts)
-- Event simulation engine
-- Live alert broadcasting
-
-### 📈 Personalized User Insights
-- Movement tracking
-- Behavioral analytics
-- “You vs Average Attendee” comparisons
+All agents share a **60-second LRU cache** keyed by stable context (high zones + attendee count). Under demo spike load, duplicate calls return cached results instantly.
 
 ---
 
-## 🛠️ Tech Stack
+## ⚡ Real-Time Architecture (No Polling)
 
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React 18, Vite 5, React Router |
-| **UI/UX** | Glassmorphism, Vanilla CSS, Lucide Icons |
-| **Charts** | Recharts |
-| **Backend** | Node.js, Express |
-| **AI Engine** | Gemini 1.5 Pro |
-| **Database** | Firebase Firestore |
-| **Hosting** | Vercel (Frontend), Cloud Run / Docker (Backend) |
-
----
-
-## ⚡ Getting Started
-
-### 1️⃣ Clone Repo
-```bash
-git clone https://github.com/your-username/flowsync-ai.git
-cd flowsync-ai
+```
+Backend Crowd Engine  ──writes──►  Firestore (zones, alerts, orders)
+                                         │
+                              onSnapshot push to all clients
+                                         │
+                    ┌────────────────────▼────────────────────┐
+                    │   Every connected browser tab / device   │
+                    │   updates automatically in < 500ms       │
+                    └─────────────────────────────────────────┘
 ```
 
-### 2️⃣ Backend Setup
+The **Crowd Engine** runs inside Cloud Run alongside the Express server:
+- Ticks every **15 seconds** with realistic ±30 occupancy drift
+- Writes all zones to Firestore in a single **atomic batch**
+- Simulate buttons (`goal`, `halftime`, `match_end`, `emergency`) trigger instant crowd spikes
+
+---
+
+## 🚀 Running Locally
+
+### Prerequisites
+- Node.js 20+
+- Firebase project with Firestore enabled
+- Gemini API key from [Google AI Studio](https://aistudio.google.com)
+
+### Backend
 ```bash
 cd backend
+cp .env.example .env          # fill in your keys
 npm install
-```
-Create `.env`:
-```text
-GEMINI_API_KEY=your_api_key_here
-```
-Run:
-```bash
-npm run dev
+npm run dev                    # starts on port 8080
 ```
 
-### 3️⃣ Frontend Setup
+**`.env` variables:**
+```env
+PORT=8080
+GEMINI_API_KEY=your_gemini_api_key_here
+GOOGLE_APPLICATION_CREDENTIALS=path/to/service-account.json
+CORS_ORIGIN=http://localhost:5173
+```
+
+### Frontend
 ```bash
 cd frontend
+cp .env.example .env          # fill in Firebase config
 npm install
-npm run dev
+npm run dev                    # starts on port 5173
+```
+
+**`frontend/.env` variables:**
+```env
+VITE_API_URL=http://localhost:8080
+VITE_FIREBASE_API_KEY=your_key
+VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your-project-id
+VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=000000000000
+VITE_FIREBASE_APP_ID=1:000000000000:web:abc123
 ```
 
 ---
 
-## 🌐 Deployment
+## 🐳 Docker + Cloud Run Deployment
 
-### 🚀 Vercel (Frontend)
-```bash
-cd frontend
-npm run build
-vercel deploy
-```
-
-### 🐳 Backend (Docker / Cloud Run)
+### Build & Test Locally
 ```bash
 cd backend
 docker build -t flowsync-backend .
-docker run -p 3000:3000 -e GEMINI_API_KEY=your_key flowsync-backend
+docker run -p 8080:8080 \
+  -e GEMINI_API_KEY=your_key \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/secrets/sa.json \
+  -v /path/to/sa.json:/secrets/sa.json \
+  flowsync-backend
+```
+
+### Deploy to Cloud Run
+```bash
+export PROJECT_ID=your-gcp-project-id
+export REGION=us-central1
+
+# 1. Build & push to Artifact Registry
+docker build -t $REGION-docker.pkg.dev/$PROJECT_ID/flowsync/backend:latest ./backend
+docker push $REGION-docker.pkg.dev/$PROJECT_ID/flowsync/backend:latest
+
+# 2. Store secrets in Secret Manager
+echo -n "$GEMINI_API_KEY" | gcloud secrets create gemini-api-key --data-file=-
+gcloud secrets create firebase-sa --data-file=./service-account.json
+
+# 3. Deploy to Cloud Run
+gcloud run deploy flowsync-backend \
+  --image $REGION-docker.pkg.dev/$PROJECT_ID/flowsync/backend:latest \
+  --platform managed \
+  --region $REGION \
+  --allow-unauthenticated \
+  --port 8080 \
+  --memory 512Mi \
+  --cpu 1 \
+  --min-instances 1 \
+  --max-instances 100 \
+  --set-secrets GEMINI_API_KEY=gemini-api-key:latest \
+  --set-secrets FIREBASE_SERVICE_ACCOUNT_JSON=firebase-sa:latest
+```
+
+### Frontend (Firebase Hosting)
+```bash
+cd frontend
+npm run build
+firebase deploy --only hosting
 ```
 
 ---
 
-## 🎨 Design Philosophy
-- 🌌 **Dark Premium UI** — Deep Blue + Gold + Emerald
-- 🔮 **Glassmorphism** + Micro-animations
-- ⚡ **Instant feedback loops**
-- 📱 **Mobile-first experience**
-- ♿ **Accessibility-first** (ARIA compliant)
+## 📡 API Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Cloud Run health check |
+| `GET` | `/api/crowd` | Live zone density (Firestore) |
+| `GET` | `/api/gates` | Gate wait times |
+| `GET` | `/api/stats` | KPI summary |
+| `GET` | `/api/wait-times` | Service queue times |
+| `POST` | `/api/predict` | Run AI agent query |
+| `POST` | `/api/simulate` | Trigger crowd event (→ Firestore) |
+| `POST` | `/api/alerts` | Broadcast alert (→ Firestore) |
+| `POST` | `/api/orders` | Place food order (→ Firestore) |
+| `GET` | `/api/orders/:id` | Get order status |
+| `PATCH` | `/api/orders/:id` | Update order status |
 
 ---
 
-## 🏆 Why This Project Stands Out
+## 📁 Project Structure
 
-- ✅ Real-world high-impact problem
-- ✅ Multi-agent AI (not just chatbot wrapper)
-- ✅ Predictive intelligence (not reactive dashboards)
-- ✅ Strong system design + clean architecture
-- ✅ Premium UX (rare in hackathon projects)
+```
+FlowSyncAI/
+├── backend/
+│   ├── server.js              # Express + Cloud Run entry point (PORT 8080)
+│   ├── crowd-engine.js        # 🆕 Real-time crowd simulator → Firestore
+│   ├── Dockerfile             # 🆕 Multi-stage Alpine build
+│   ├── .dockerignore          # 🆕 Excludes node_modules, .env
+│   ├── agents/index.js        # 🆕 Gemini agents with 60s LRU cache
+│   ├── api/routes.js          # 🆕 Firestore-backed REST API
+│   └── package.json
+├── firebase/
+│   └── firestore-setup.js     # 🆕 Firebase Admin SDK (read/write/seed)
+├── frontend/
+│   ├── src/
+│   │   ├── firebase.js        # 🆕 Firebase client SDK + offline persistence
+│   │   ├── useFirestore.js    # 🆕 Real-time hooks (onSnapshot)
+│   │   ├── components/
+│   │   │   └── Heatmap.jsx    # 🆕 Live Firestore crowd data
+│   │   └── pages/
+│   │       ├── Home.jsx       # 🆕 Live zone status
+│   │       ├── AdminDashboard.jsx # 🆕 Live KPIs + alerts from Firestore
+│   │       └── Orders.jsx
+│   └── package.json
+└── README.md
+```
 
 ---
 
-## 🔮 Future Scope
-- 📡 IoT integration (CCTV, sensors)
-- 🧠 Reinforcement learning for crowd optimization
-- 🏙️ Smart city traffic & metro integration
-- 🎟️ Integration with ticketing platforms
+## 🎯 Hackathon Demo Highlights
+
+| Feature | How to Demo |
+|---|---|
+| **Real-time heatmap** | Open in 2 tabs — click Simulate on Admin, watch Heatmap update |
+| **Multi-device sync** | Open app on phone + laptop — both heatmaps update simultaneously |
+| **AI agents** | Open FloatingChat → ask "Which gate is least crowded?" |
+| **Event simulation** | Admin → "⚽ Simulate Goal" → Heatmap spikes in <1s |
+| **Broadcast alerts** | Admin → type message → receive on all devices |
+| **Order tracking** | Place order → status updates automatically (placed→confirmed→ready) |
 
 ---
 
-## 👨‍💻 Team
-**Jayani Trivedi**  
-*FlowSync AI • 2026*
+## 👩‍💻 Team
 
----
-
-## ⭐ Support
-If you found this project interesting:
-- 👉 Star the repo
-- 👉 Share feedback
-- 👉 Fork & build on it
-
-> **⚡ FlowSync AI doesn’t just manage crowds — it predicts and orchestrates them.**
+Built with ❤️ for Google Cloud Hackathon · FlowSync AI Team
